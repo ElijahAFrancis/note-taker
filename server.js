@@ -3,8 +3,8 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const port = 3001;
 const app = express();
-var notes = require('./db/db.json');
 const fs = require('fs');
+let notes = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,7 +19,10 @@ app.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, '/public/notes.html'));
 });
 
-app.get('/api/notes', (req, res) => res.json(notes));
+app.get('/api/notes', (req, res) => {
+  notes = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
+  return res.json(notes);
+});
 
 app.get('/api/notes/:id', (req, res) => {
   let requestedId = req.params.id;
@@ -79,7 +82,7 @@ app.post('/api/notes', (req, res) => {
       json.push(newNote);    
       fs.writeFile('./db/db.json', JSON.stringify(json), function(err){
         if (err) throw err;
-        console.log('The "data to append" was appended to file!');
+        console.log(fs.readFileSync('./db/db.json'));
       });
   })
 
