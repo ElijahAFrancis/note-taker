@@ -1,7 +1,8 @@
+// declaring variables
 const express = require('express');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const port = 3001;
+const port = process.env.PORT || 3001;
 const app = express();
 const fs = require('fs');
 let notes = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
@@ -11,21 +12,26 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static('public'));
 
-app.get('/', (req, res) =>
+//set default page to index.html
+app.get('*', (req, res) =>
   res.sendFile(path.join(__dirname, '/public/index.html'))
 );
 
+//set /notes path to notes.html
 app.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, '/public/notes.html'));
 });
 
+//reads db.json in /db when a /api/notes get request is made
 app.get('/api/notes', (req, res) => {
   notes = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
   return res.json(notes);
 });
 
+//gets requested note from db.json
 app.get('/api/notes/:id', (req, res) => {
   let requestedId = req.params.id;
+  notes = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
   // Iterate through notes to see if selected note exists
   for (let i = 0; i < notes.length; i++) {
     if (requestedId === notes[i].id) {
@@ -37,7 +43,9 @@ app.get('/api/notes/:id', (req, res) => {
   return res.json('No match found');
 });
 
+//deletes selected note from db.json
 app.delete('/api/notes/:id', (req, res) => {
+  notes = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
   let requestedId = req.params.id;
   // Iterate through the notes to see if selected note exists
   for (let i = 0; i < notes.length; i++) {
@@ -58,6 +66,8 @@ app.delete('/api/notes/:id', (req, res) => {
   return res.json('No match found');
 });
 
+
+//adds new note to db.json
 app.post('/api/notes', (req, res) => {
   // Log that a POST request was received
   console.info(`${req.method} request received to add a note`);
